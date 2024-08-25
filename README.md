@@ -22,6 +22,8 @@ git checkout BRANCH - (Alterna entre branches ou recupera um commit específico 
 
 git checkout -b NOME - (Para criar e mudar para um novo branch.)
 
+git branch -v - (Mostra os últimos commits das branches.)
+
 git commit -m "texto" - (Cria um commit com os arquivos adicionados, salvando uma versão do projeto com uma mensagem descritiva.)
 
 git commit --amend - (é usado para modificar o commit mais recente. Ele permite que você altere a mensagem do commit ou adicione novos arquivos ao commit anterior, sem criar um novo commit.)
