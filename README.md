@@ -18,6 +18,10 @@ git add NOME DO ARQUIVO - (Adiciona arquivos ao índice (staging area), preparan
 
 git add . - (adiciona tudo)
 
+git checkout BRANCH - (Alterna entre branches ou recupera um commit específico (pode ser usado com -b para criar e mudar para um novo branch).)
+
+git checkout -b NOME - (Para criar e mudar para um novo branch.)
+
 git commit -m "texto" - (Cria um commit com os arquivos adicionados, salvando uma versão do projeto com uma mensagem descritiva.)
 
 git commit --amend - (é usado para modificar o commit mais recente. Ele permite que você altere a mensagem do commit ou adicione novos arquivos ao commit anterior, sem criar um novo commit.)
