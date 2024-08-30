@@ -20,14 +20,14 @@ def deposito():
     global historico_deposito
     # global extrato
     
-    valor = float(input("Qual valor deseja depositar? "))
+    valor = float(input("\nQual valor deseja depositar? R$ "))
     if valor <= 0:
-        print("Não é possível depositar este valor. Tente novamente.")
+        print("\nNão é possível depositar este valor. Tente novamente.\n")
     else:
         saldo += valor
         historico_deposito.append(valor)
         # extrato += f"Depósito: R$ {valor:.2f}\n"
-        print(f"Você acaba de depositar R$  {valor:.2f} reais.")
+        print(f"\nVocê acaba de depositar: R$ {valor:.2f} reais.")
     # Adicionar linha para inputs que não sejam números
 
 
@@ -36,31 +36,47 @@ def saque():
     global numero_saque
     # global extrato
     
-    valor = float(input("Qual valor deseja sacar?"))
+    valor = float(input("Qual valor deseja sacar? R$ "))
     if valor <= 0:
-        print("Não é possível sacar este valor. Tene novamente.")
+        print("\nNão é possível sacar este valor. Tene novamente.\n")
     elif valor > saldo:
-        print("Não é possível sacar este valor. Saldo indisponível.")
+        print("\nNão é possível sacar este valor. Saldo indisponível.\n")
     elif (valor > limite) or (numero_saque >= LIMITE_SAQUE):
-        print("Limite de saque atingido.")
+        print("\nLimite de saque atingido.\n")
     else:
         saldo -= valor
         numero_saque += 1
         historico_saque.append(valor)
         # extrato += f"Saque: R$ {valor:.2f}\n"
-        print(f"Saldo efetuado com sucesso. Você acaba de sacar R$ {valor:.2f} reais.")
+        print(f"\nSaque efetuado com sucesso. Você acaba de sacar: R$ {valor:.2f} reais.")
     # Adicionar linha para inputs que não sejam números
 
 
 # escrever def exibir_extrato
+def exibir_extrato():
+    print("\n----- Extrato de sua conta bancária -----")
+    if not historico_deposito:
+        print("\nNão houve depósitos nesta conta.")
+    else:
+        print("\nHistórico de Depósito:\n")
+        for deposito in historico_deposito:
+            print(f"Depósito: R$ {deposito:.2f}\n")
+    if not historico_saque:
+        print("Não houve saques nesta conta.")
+    else:
+        print("\nHistórico de Saque:\n")
+        for saque in historico_saque:
+            print(f"Saque: R$ {saque:.2f}\n")
+    print(f"\nSaldo atual: = R$ {saldo:.2f}\n\nObrigado por usar os nossos serviço. Volte sempre!")
+    
 
 # VERIFICAR MENU E INPUT
 
-nome = input("Qual seu nome?")
+nome = input("Qual seu nome? ")
 
 while(True):
     menu = f"""
-    Olá, {nome}. Bem-vindo à sua conta. Por getileza, escolha uma opção:\n
+    Olá, {nome}. Bem-vindo à sua conta. Por getileza, escolha uma opção:
 
     [1] Depositar
     [2] Sacar
@@ -75,22 +91,10 @@ while(True):
     elif opcao == 2:
         saque()
     elif opcao == 3:
-        extrato = f"""----- Extrato de sua conta bancária -----
-          
-          Histórico de Depósito = {historico_deposito}
-          
-          Histórico de Saque = {historico_saque}
-          
-          Saldo atual = {saldo:.2f}
-          
-          Obrigado por usar os nossos serviço. Volte sempre!
-          
-          """
-        print(extrato)
-    
+        exibir_extrato()
     elif opcao == 4:
-        print("Obrigado por usar os nossos serviço. Volte sempre!")
+        print("\nObrigado por usar os nossos serviço. Volte sempre!")
         break
     else:
-        print("Opção inválida. Por favor, escolha entre as seguintes opções: [1] Depositar, [2] Sacar, [3] Ver extrato, [4] Sair\n")
+        print("\nOpção inválida. Por favor, escolha entre as seguintes opções: [1] Depositar, [2] Sacar, [3] Ver extrato, [4] Sair\n")
     # Adicionar linha para inputs que não sejam números
