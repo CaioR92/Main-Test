@@ -64,13 +64,13 @@ def exibir_extrato():
         print("\nHistórico de Saque:\n")
         for saque in historico_saque:
             print(f"Saque: R$ {saque:.2f}\n")
-    print(f"\nSaldo atual: = R$ {saldo:.2f}\n\nObrigado por usar os nossos serviço. Volte sempre!")
+    print(f"\nSaldo atual: = R$ {saldo:.2f}\n\nObrigado por utilizar os nossos serviço. Volte sempre!")
     
 nome = input("Qual seu nome? ")
 
 while(True):
     menu = f"""
-    Olá, {nome}. Bem-vindo à sua conta. Por getileza, escolha uma opção:
+    Olá, {nome}. Bem-vindo à sua conta. Por gentileza, escolha uma opção:
 
     [1] Depositar
     [2] Sacar
@@ -87,7 +87,7 @@ while(True):
     elif opcao == 3:
         exibir_extrato()
     elif opcao == 4:
-        print("\nObrigado por usar os nossos serviços. Volte sempre!")
+        print("\nObrigado por utilizar os nossos serviços. Volte sempre!")
         break
     else:
         print("\nOpção inválida. Por favor, escolha entre as seguintes opções: [1] Depositar, [2] Sacar, [3] Ver extrato, [4] Sair\n")
