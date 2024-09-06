@@ -7,32 +7,49 @@
 # Exibir saldo atual da conta no fim do extrato
 # Valores em R$ xxx.xx
 
+# Desafio de projeto 2: Data e hora
+# Limite de 10 transações por dia
+# Ao tentar uma transação além do limite, deve ser informado que o número de transações daquele dia foi atingido
+# Informação de data e hora em todas as transações no extrato
+
+from datetime import datetime
+
+# formatação data e hora
+mascara_ptbr = "%d/%m/%Y %H:%M"
+data_hora_atual = datetime.now().strftime(mascara_ptbr)
+
 saldo = 0
 limite = 500
 extrato = ""
-numero_saque = 0
-LIMITE_SAQUE = 3
+# Alterrar limite de transações e inserir data e hora
+numero_transacao = 0
+LIMITE_TRANSACAO = 10
 historico_saque = []
 historico_deposito = []
 
 def deposito():
     global saldo
+    global numero_transacao
     global historico_deposito
     
     try:
         valor = float(input("\nQual valor deseja depositar? R$ "))
         if valor <= 0:
             print("\nNão é possível depositar este valor. Tente novamente.\n")
+        elif numero_transacao >= LIMITE_TRANSACAO:
+            print("\nLimite de transações diárias atingido.")
         else:
             saldo += valor
-            historico_deposito.append(valor)
+            numero_transacao += 1
+            data_hora_atual = datetime.now().strftime(mascara_ptbr)
+            historico_deposito.append((valor, data_hora_atual))
             print(f"\nVocê acaba de depositar: R$ {valor:.2f} reais.")
     except ValueError:
         print("\nEntrada inválida. Por favor, insira um valor numérico.\n")
 
 def saque():
     global saldo
-    global numero_saque
+    global numero_transacao
     
     try:
         valor = float(input("Qual valor deseja sacar? R$ "))
@@ -40,12 +57,15 @@ def saque():
             print("\nNão é possível sacar este valor. Tente novamente.\n")
         elif valor > saldo:
             print("\nNão é possível sacar este valor. Saldo indisponível.\n")
-        elif (valor > limite) or (numero_saque >= LIMITE_SAQUE):
-            print("\nLimite de saque atingido. Não é possível efetuar esta ação.\n")
+        elif (valor > limite):
+            print("\nLimite de saque atingido. Não é possível efetuar esta transação.\n")
+        elif (numero_transacao >= LIMITE_TRANSACAO):
+            print("\nLimite de transações diárias atingido.")
         else:
             saldo -= valor
-            numero_saque += 1
-            historico_saque.append(valor)
+            numero_transacao += 1
+            data_hora_atual = datetime.now().strftime(mascara_ptbr)
+            historico_saque.append((valor, data_hora_atual))
             print(f"\nSaque efetuado com sucesso. Você acaba de sacar: R$ {valor:.2f} reais.")
     except ValueError:
         print("\nEntrada inválida. Por favor, insira um valor numérico.\n")
@@ -56,14 +76,14 @@ def exibir_extrato():
         print("\nNão houve depósitos nesta conta.")
     else:
         print("\nHistórico de Depósito:\n")
-        for deposito in historico_deposito:
-            print(f"Depósito: R$ {deposito:.2f}\n")
+        for deposito, data_hora in historico_deposito:
+            print(f"Data e hora da transação: {data_hora} Tipo da trasação: Depósito Montante: R$ {deposito:.2f}\n")
     if not historico_saque:
         print("\nNão houve saques nesta conta.")
     else:
         print("\nHistórico de Saque:\n")
-        for saque in historico_saque:
-            print(f"Saque: R$ {saque:.2f}\n")
+        for saque, data_hora in historico_saque:
+            print(f"Data e hora da transação: {data_hora} Tipo da trasação: Saque Montante: R$ {saque:.2f}\n")
     print(f"\nSaldo atual: = R$ {saldo:.2f}\n\nObrigado por utilizar os nossos serviço. Volte sempre!")
     
 nome = input("Qual seu nome? ")
