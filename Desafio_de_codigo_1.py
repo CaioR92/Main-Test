@@ -21,48 +21,53 @@
 # criar_conta: listas; conta = agência, nro da conta, usuário; numero_conta += 1, NUMEROAGENCIA = 0001; usuário + 1 conta, conta apenas 1 usuário e não existe conta sem usuário
 # Para vincular um usuário a uma conta, filtre a lista de user buscando o cpf
 
-# Transformar os argumentos globais em locais
+from datetime import datetime
 
+mascara_ptbr = "%d/%m/%Y %H:%M"
+data_hora_atual = datetime.now().strftime(mascara_ptbr)
+    
+def listar_contas(contas):
+    for conta in contas:
+        print(f"""Titular: {conta["usuario"]["nome"]}
+              "C/C: {conta["nro_conta"]}
+              "Agência: {conta["agencia"]}"
+              """)
+    
 def criar_usuario(usuarios):
     cpf = input("Informe seu CPF (somente números): ")
-    usuario = filtrar_usuario()
+    usuario = filtrar_usuario(cpf, usuarios)
+    
+    if usuario:
+        print("\nEste CPF já foi utilizado para cadastro de usuário.")
+        return
     
     nome = input("Por gentileza, digite seu nome completo: ")
     data_nascimento = input("Por gentileza, informe sua data de nascimento (dd-mm-aaaa): ")
     endereco = input("Por gentileza, informe seu endereço competo (logradouro, número - bairro - cidade/UF): ")
     usuarios.append({"nome": nome, "data_nascimento": data_nascimento, "cpf": cpf, "endereco": endereco})
-    print("Usuário criado com sucesso!")
+    print("\nUsuário cadastrado com sucesso!\n")
 
 def filtrar_usuario(cpf, usuarios):
+   usuario_filtrado = [usuario for usuario in usuarios if usuario["cpf"] == cpf]
+   return usuario_filtrado[0] if usuario_filtrado else None
+
+def criar_conta(usuarios, AGENCIA, nro_conta, contas):
+    cpf = input("Informe seu CPF (somente números): ")
+    usuario = filtrar_usuario(cpf, usuarios)
     
-def criar_conta(contas):
-    
+    if usuario:
+        nro_conta_str = str(nro_conta).zfill(5)
+        print("\nConta criada com sucesso!\n")
+        contas.append({"usuario": usuario, "nro_conta": nro_conta_str, "agencia": AGENCIA})
+        nro_conta += 1
+        return nro_conta
+    else:
+        print("\nUsuário não encontrado. Por favor, cadastre um usuário para poder criar uma conta.\n")
+        return nro_conta
 
-from datetime import datetime
-
-# formatação data e hora
-mascara_ptbr = "%d/%m/%Y %H:%M"
-data_hora_atual = datetime.now().strftime(mascara_ptbr)
-
-saldo = 0
-limite = 500
-extrato = ""
-# Alterrar limite de transações e inserir data e hora
-AGENCIA = "0001"
-numero_transacao = 0
-LIMITE_TRANSACAO = 10
-historico_saque = []
-historico_deposito = []
-usuarios = []
-contas = []
-
-# def deposito():
-    global saldo
-    global numero_transacao
-    global historico_deposito
+def deposito_2(saldo, valor, numero_transacao, historico_deposito, LIMITE_TRANSACAO, mascara_ptbr, /):
     
     try:
-        valor = float(input("\nQual valor deseja depositar? R$ "))
         if valor <= 0:
             print("\nNão é possível depositar este valor. Tente novamente.\n")
         elif numero_transacao >= LIMITE_TRANSACAO:
@@ -76,52 +81,11 @@ contas = []
     except ValueError:
         print("\nEntrada inválida. Por favor, insira um valor numérico.\n")
 
-def deposito_2(saldo, numero_transacao, historico_deposito, LIMITE_TRANSACAO, mascara_ptbr):
-    
-    try:
-        valor = float(input("\nQual valor deseja depositar? R$ "))
-        if valor <= 0:
-            print("\nNão é possível depositar este valor. Tente novamente.\n")
-        elif numero_transacao >= LIMITE_TRANSACAO:
-            print("\nLimite de transações diárias atingido.")
-        else:
-            saldo += valor
-            numero_transacao += 1
-            data_hora_atual = datetime.now().strftime(mascara_ptbr)
-            historico_deposito.append((valor, data_hora_atual))
-            print(f"\nVocê acaba de depositar: R$ {valor:.2f} reais.")
-    except ValueError:
-        print("\nEntrada inválida. Por favor, insira um valor numérico.\n")
+    return saldo, numero_transacao, historico_deposito
 
-    return saldo, numero_transacao, historico_deposito, extrato
-
-# def saque():
-    global saldo
-    global numero_transacao
+def saque_2(*, saldo, valor, numero_transacao, LIMITE_TRANSACAO, limite, mascara_ptbr, historico_saque):
     
     try:
-        valor = float(input("Qual valor deseja sacar? R$ "))
-        if valor <= 0:
-            print("\nNão é possível sacar este valor. Tente novamente.\n")
-        elif valor > saldo:
-            print("\nNão é possível sacar este valor. Saldo indisponível.\n")
-        elif (valor > limite):
-            print("\nLimite de saque atingido. Não é possível efetuar esta transação.\n")
-        elif (numero_transacao >= LIMITE_TRANSACAO):
-            print("\nLimite de transações diárias atingido.")
-        else:
-            saldo -= valor
-            numero_transacao += 1
-            data_hora_atual = datetime.now().strftime(mascara_ptbr)
-            historico_saque.append((valor, data_hora_atual))
-            print(f"\nSaque efetuado com sucesso. Você acaba de sacar: R$ {valor:.2f} reais.")
-    except ValueError:
-        print("\nEntrada inválida. Por favor, insira um valor numérico.\n")
-        
-def saque_2(*, saldo, numero_transacao, LIMITE_TRANSACAO, limite, mascara_ptbr, historico_saque):
-    
-    try:
-        valor = float(input("Qual valor deseja sacar? R$ "))
         if valor <= 0:
             print("\nNão é possível sacar este valor. Tente novamente.\n")
         elif valor > saldo:
@@ -140,7 +104,7 @@ def saque_2(*, saldo, numero_transacao, LIMITE_TRANSACAO, limite, mascara_ptbr, 
         print("\nEntrada inválida. Por favor, insira um valor numérico.\n")
     return saldo, numero_transacao, historico_saque
 
-def exibir_extrato():
+def exibir_extrato_2(saldo, /, *, historico_deposito, historico_saque):
     print("\n----- Extrato de sua conta bancária -----\n")
     if not historico_deposito:
         print("\nNão houve depósitos nesta conta.")
@@ -154,33 +118,68 @@ def exibir_extrato():
         print("\nHistórico de Saque:\n")
         for saque, data_hora in historico_saque:
             print(f"Data e hora da transação: {data_hora} Tipo da trasação: Saque Montante: R$ {saque:.2f}\n")
-    print(f"\nSaldo atual: = R$ {saldo:.2f}\n\nObrigado por utilizar os nossos serviço. Volte sempre!")
+    print(f"\nSaldo atual: = R$ {saldo:.2f}\n\nObrigado por utilizar os nossos serviço. Volte sempre!")  
     
-def exibir_extrato_2(saldo, /, *, historico_deposito, histórico_saque):
-    
+def main():
 
-nome = input("Qual seu nome? ")
+    mascara_ptbr = "%d/%m/%Y %H:%M"
+    data_hora_atual = datetime.now().strftime(mascara_ptbr)
 
-while(True):
-    menu = f"""
-    Olá, {nome}. Bem-vindo à sua conta. Por gentileza, escolha uma opção:
+    AGENCIA = "0001"
+    LIMITE_TRANSACAO = 10
 
-    [1] Depositar
-    [2] Sacar
-    [3] Ver extrato
-    [4] Sair
+    saldo = 0
+    limite = 500
+    extrato = ""
+    numero_transacao = 0
+    historico_saque = []
+    historico_deposito = []
+    usuarios = []
+    contas = []
+    nro_conta = 1
 
-    """
-    
-    opcao = int(input(menu))
-    if opcao == 1:
-        deposito()
-    elif opcao == 2:
-        saque()
-    elif opcao == 3:
-        exibir_extrato()
-    elif opcao == 4:
-        print("\nObrigado por utilizar os nossos serviços. Volte sempre!")
-        break
-    else:
-        print("\nOpção inválida. Por favor, escolha entre as seguintes opções: [1] Depositar, [2] Sacar, [3] Ver extrato, [4] Sair\n")
+    while(True):
+
+        menu = f"""
+        Olá, Bem-vindo à sua conta. Por gentileza, escolha uma opção:
+
+        [1] Depositar
+        [2] Sacar
+        [3] Ver extrato
+        [4] Cadastrar usuário
+        [5] Criar Conta Corrente
+        [6] Listar Contas
+        [7] Sair
+
+        """
+        
+        opcao = int(input(menu))
+        if opcao == 1:
+            valor = float(input("\nQual valor deseja depositar? R$ "))
+            saldo, numero_transacao, historico_deposito = deposito_2(saldo, valor, numero_transacao, historico_deposito, LIMITE_TRANSACAO, mascara_ptbr)
+        elif opcao == 2:
+            valor = float(input("\nQual valor deseja sacar? R$ "))
+            saldo, numero_transacao, historico_saque = saque_2(
+            saldo=saldo,
+            valor=valor,
+            numero_transacao=numero_transacao,
+            LIMITE_TRANSACAO=LIMITE_TRANSACAO,
+            limite=limite,
+            mascara_ptbr=mascara_ptbr, 
+            historico_saque=historico_saque,
+            )
+        elif opcao == 3:
+            exibir_extrato_2(saldo, historico_deposito=historico_deposito, historico_saque=historico_saque)
+        elif opcao == 4:
+            criar_usuario(usuarios)
+        elif opcao == 5:
+            nro_conta = criar_conta(usuarios, AGENCIA, nro_conta, contas)
+        elif opcao == 6:
+            listar_contas(contas)
+        elif opcao == 7:
+            print("\nObrigado por utilizar os nossos serviços. Volte sempre!")
+            break
+        else:
+            print("\nOpção inválida. Por favor, escolha entre as seguintes opções: [1] Depositar, [2] Sacar, [3] Ver extrato, [4] Sair\n")
+
+main()
