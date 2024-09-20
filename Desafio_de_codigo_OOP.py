@@ -1,3 +1,6 @@
+#Depois adicionar sistema de notificação de transações, tranferências, tipos de contas, geração de relatórios por data, tipo de transação
+# e possibilidade de exportar por pdf ou csv
+
 from abc import ABC, abstractmethod
 from datetime import datetime
 
@@ -15,12 +18,12 @@ class Cliente:
         #e o comportamento será diferente dependendo de qual subclasse de Transacao
         #está sendo utilizada (pode ser Deposito ou Saque).
         
-    def adicionar_conta(self, conta): # liente pode ter várias contas
+    def adicionar_conta(self, conta): #cliente pode ter várias contas
         self.contas.append(conta)
 
 class PessoaFísica(Cliente):
     def __init__(self, cpf, nome, data_nascimento, endereco):
-        super().__init__(endereco)
+        super().__init__(endereco) #super()__init__ chama o construtor da classe pai
         self.cpf = cpf
         self.nome = nome
         self.data_nascimento = data_nascimento
@@ -34,10 +37,10 @@ class Conta:
         self.__historico = Historico()
     
     @property #transforma um método em um getter; retorna o atributo, um valor ou um objeto
-    def exibir_saldo(self): #não recebe argumento e retorna float
+    def saldo(self): #não recebe argumento e retorna float
         return self.__saldo
     
-    @property
+    @property #define métodos que funcionam como atributos de classe
     def numero(self):
         return self.__numero
     
@@ -54,10 +57,9 @@ class Conta:
         return self.__historico
     
     @classmethod #não recebe a instância (self), mas sim a classe como argumento. Acessar ou modifica atributos ou métodos da classe
-    def criar_conta(cls, cliente, numero): #pega a classeConta + numero e nome e retorna objConta
+    def nova_conta(cls, cliente, numero): #pega a classeConta + numero e nome e retorna objConta
         return cls(cliente, numero)
         
-    @property #define métodos que funcionam como atributos de classe, ou seja, self.sacar chama o método sacar como um atributo
     def sacar(self, valor: float) -> bool:
         excede_saldo = valor > saldo
         saldo = self.__saldo
@@ -70,74 +72,102 @@ class Conta:
             print(f"Saque no valor de R$ {valor:.2f} efetuado com sucesso.") #Não pode ser self.valor pois o valor é um argumento, ñ um atributo
             return True
         else:
-            print("Impossível realizar saque. Valor incorreto.")
+            print("Impossível realizar saque. Valor inválido.")
         return False
     
-    @property
     def depositar(self, valor: float) -> bool:
         if valor > 0:
             self.__saldo += valor
             print(f"Deposíto no valor de R$ {valor:.2f} efetuado com sucesso.")
         else:
-            print("Impossível realizar depósito. Valor incorreto.")
+            print("Impossível realizar depósito. Valor inválido.")
             return False
         return True
         
 class ContaCorrente(Conta): #herança; com haverá diferentes tipos de conta, os controles devem ser feito nas classes descendentes
-    def __init__(self, cliente, numero, saldo, limite=500, limite_saques=3): #limites devem ser inicializados no construtor
-        super().__init__(cliente, numero, saldo)
+    def __init__(self, cliente, numero, limite=500, limite_saques=3): #limites devem ser inicializados no construtor
+        super().__init__(cliente, numero)
         self.limite = limite
         self.limite_saques = limite_saques
         self.numero_saque = 0
         self.data_hora_atual = None
-    
+        
 #É necessário chamar os métodos da classe base para realizar outros tipos de verificações
 #Adicionar contador de saques que é verificado a cada operação
+#Faltou verificar limite
     def sacar(self, valor):
-        if self.numero_saque >= self.limite_saques:
+        if valor > self.limite:
+            print("\nO valor do saque excede o limite de sua Conta. Tente novamente.")
+        elif self.numero_saque >= self.limite_saques:
             print("\nLimite de saques diários atingido.")
         else:
-            if super().sacar(valor): #super(). para chamar o método da classe ascendente
-                self.numero_saque += 1
-                self.data_hora_atual = datetime.now().strftime(mascara_ptbr)
-                print(f"Saque no valor de R$ {valor:.2f} efetuado com sucesso.")
-
-class Transacao(ABC): #abstrata; contém atributos e métodos comuns com outras classes derivadas
+            super().sacar(valor) #super(). para chamar o método da classe ascendente
+            self.numero_saque += 1
+            self.data_hora_atual = datetime.now().strftime(mascara_ptbr)
+            print(f"Saque no valor de R$ {valor:.2f} efetuado com sucesso.")
+        return False
+       
+    def depositar(self, valor):
+        if super().depositar(valor): #precisa de if
+            self.data_hora_atual = datetime.now().strftime(mascara_ptbr)
+            print(f"Deposito no valor de R$ {valor:.2f} efetuado com sucesso.")
+            
+    def __str__(self): #fornece uma representação em string de um objeto
+        return f"""Titular: {self.cliente.nome},
+                C/C: {self.numero},
+                Agência: {self.agencia}"""
     
-    @abstractmethod #não possui implementação na classe base, apenas nas derivadas (obrigadas)
+class Transacao(ABC): #classe abstrata; contém atributos e métodos comuns com outras classes derivadas
+    
+    @property #classe abstrata; garante com que cada transação tenha um valor associado 
+    @abstractmethod #propriedade abstrata; subclasses obrigadas a usá-la
+    def valor(self):
+        pass
+    
+    @abstractmethod #não possui implementação na classe base, apenas nas derivadas (obrigadas); método abstrato
     def registrar(self, conta: Conta): #vai ser chamada através de polimorfismo
         pass
 
-class Deposito(Transacao):
+class Deposito(Transacao): #adicionar método para verificar transação
+    #atributos (self, valor)
+    #ganha o método registrar da classe transacao
     def __init__(self, valor):
-        self.valor = valor
+        self.__valor = valor
+        
+    @property #implementa o valor como uma propriedade
+    def valor(self):
+        return self.__valor
         
     def registrar(self, conta: Conta): 
-        conta.depositar(self.valor)
-        print(f"Depositando R$ {self.valor:.2f} na conta.")
-    # atributos (self, valor)
-    # ganha o método registrar da classe transacao
+        sucesso_transacao = conta.depositar(self.valor)
+        if sucesso_transacao:
+            print(f"Depositando R$ {self.valor:.2f} na conta.")
+            conta.historico.adicionar_transacao(self) #para registrar a transação no histórico
     
-class Saque(Transacao):
+class Saque(Transacao): #adicionar método para verificar transação
     def __init__(self, valor):
-        self.valor = valor
-        
+        self.__valor = valor
+    
+    @property
+    def valor(self):
+        return self.__valor
+    
     def registrar(self, conta: Conta):
-        conta.sacar(self.valor)
-        print(f"Sacando R$ {self.valor:.2f} na conta.")
-    #implementa o método registrar
-    # atributos (self. valor)
-    # ganha o método registrar da classe transacao
+        sucesso_transacao = conta.sacar(self.valor)
+        if sucesso_transacao:
+            print(f"Sacando R$ {self.valor:.2f} na conta.")
+            conta.historico.adicionar_transacao(self)
 
 class Historico: #init + adicionar transaçoes em self.transacoes + atributo transacoes retorna transacoes
     def __init__(self):
         self.__transacoes = []  #Lista vazia; armazena instância criadas da classe
+    
+    @property #getter    
+    def transacoes(self):
+        return self.__transacoes
         
-    def transacoes(self, trasacao: Transacao):
-        return self.transacoes
-        
-    def adicionar_transacao(self): #dict
-        print(f"""{'Tipo de Transação': transacao,
-                    'Valor da Transação': valor,
-                    'Data da Transação': data_hora}""")
+    def adicionar_transacao(self, transacao): #precisa de um append para __transacoes; dict
+        self.__transacoes.append({'Tipo de Transação': transacao.__class__.__name__, #retorna a o nome da classe a qual o objeto transacao pertence com string
+                    'Valor da Transação': transacao.valor,
+                    'Data da Transação': datetime.now().strftime(mascara_ptbr)})
 
